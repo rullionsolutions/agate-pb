@@ -33,7 +33,7 @@ module.exports.addFields([
 
 module.exports.defbind("presaveLogic", "presave", function (outcome_id) {
     this.getField("last_upd_by").set(this.trans.session.user_id);
-    this.getField("last_upd_at").set("today");
+    this.getField("last_upd_at").set("NOW");
 });
 
 
