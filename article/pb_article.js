@@ -48,8 +48,8 @@ module.exports.replaceTokenRecord = function (key) {
     }
 
     return IO.XmlStream.left_bracket_subst + "a href='" +
-        UI.pages.get("pb_article_show").getSimpleURL(row.getKey()) + "'" + UI.XmlStream.right_bracket_subst + row.getLabel("article_link") +
-        UI.XmlStream.left_bracket_subst + "/a" + UI.XmlStream.right_bracket_subst;
+        UI.pages.get("pb_article_show").getSimpleURL(row.getKey()) + "'" + IO.XmlStream.right_bracket_subst + row.getLabel("article_link") +
+        IO.XmlStream.left_bracket_subst + "/a" + IO.XmlStream.right_bracket_subst;
 };
 
 module.exports.getField("content").define("replaceToken_file", function (tokens) {
@@ -57,7 +57,7 @@ module.exports.getField("content").define("replaceToken_file", function (tokens)
     var file_row;
     var return_value = "";
     try {
-        file_row = UI.entities.get("ac_file").getRow(file_id);
+        file_row = Data.entities.get("ac_file").getRow(file_id);
         file_row.getField("url").owner.page = this.owner.page;
         return_value = IO.XmlStream.left_bracket_subst
             + "a href='" + file_row.getField("url").getURL() + "'"
