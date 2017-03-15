@@ -28,7 +28,7 @@ module.exports.addFields([
     { id: "which_user" , label: "Which user"        , type: "Option"    , mandatory: true, list_column: true, list: "pb.which_user", css_reload: true },
     { id: "user_id"    , label: "User"              , type: "Reference" , visible: false, ref_entity: "ac_user" },
     { id: "type_id"    , label: "Type"              , type: "Reference" , visible: false, ref_entity: "sy_user_type" },
-    { id: "role_id"    , label: "Role"              , type: "Option"    , visible: false, config_item: "x.roles", label_prop: "title",data_length: 80 },
+    { id: "role_id"    , label: "Role"              , type: "Option"    , visible: false, config_item: "x.roles", label_prop: "title", data_length: 80 },
     { id: "when_showed", label: "When"              , type: "Option"    , mandatory: true, list_column: true, list: "pb.when", css_reload: true },
     { id: "page_id"    , label: "Page"              , type: "Option"    , visible: false, config_item: "x.pages", label_prop: "title", data_length: 80 },
     { id: "how_often"  , label: "How often"         , type: "Option"    , mandatory: true, list_column: true, list: "pb.how_often", css_reload: true },
@@ -40,10 +40,10 @@ module.exports.addFields([
 ]);
 
 module.exports.define("endSetup", function () {
-    var lov = this.getField("msg_type").getLoV().clone({ id: "temp_lov" });
+    var lov = this.getField("msg_type").getOwnLoV();
     lov.getItem("D").active = false;
     lov.getItem("N").active = false;
-    this.getField("msg_type").lov = lov;
+    // this.getField("msg_type").lov = lov;
 });
 
 
