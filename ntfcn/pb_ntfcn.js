@@ -1,5 +1,6 @@
 "use strict";
 
+var Access = require("lazuli-access/index.js");
 var Data = require("lazuli-data/index.js");
 var Rhino = require("lazuli-rhino/index.js");
 var UI = require("lazuli-ui/index.js");
@@ -28,9 +29,9 @@ module.exports.addFields([
     { id: "which_user" , label: "Which user"        , type: "Option"    , mandatory: true, list_column: true, list: "pb.which_user", css_reload: true },
     { id: "user_id"    , label: "User"              , type: "Reference" , visible: false, ref_entity: "ac_user" },
     { id: "type_id"    , label: "Type"              , type: "Reference" , visible: false, ref_entity: "sy_user_type" },
-    { id: "role_id"    , label: "Role"              , type: "Option"    , visible: false, config_item: "x.roles", label_prop: "title",data_length: 80 },
+    { id: "role_id"    , label: "Role"              , type: "Option"    , visible: false, collection_id: "roles", data_length: 80 },
     { id: "when_showed", label: "When"              , type: "Option"    , mandatory: true, list_column: true, list: "pb.when", css_reload: true },
-    { id: "page_id"    , label: "Page"              , type: "Option"    , visible: false, config_item: "x.pages", label_prop: "title", data_length: 80 },
+    { id: "page_id"    , label: "Page"              , type: "Option"    , visible: false, collection_id: "pages", data_length: 80 },
     { id: "how_often"  , label: "How often"         , type: "Option"    , mandatory: true, list_column: true, list: "pb.how_often", css_reload: true },
     { id: "end_dt"     , label: "End date"          , type: "DateTime"  , list_column: true, visible: false },
     { id: "created"    , label: "Created"           , type: "DateTime"  , list_column: true, visible: false },
@@ -40,10 +41,10 @@ module.exports.addFields([
 ]);
 
 module.exports.define("endSetup", function () {
-    var lov = this.getField("msg_type").getLoV().clone({ id: "temp_lov" });
+    var lov = this.getField("msg_type").getOwnLoV();
     lov.getItem("D").active = false;
     lov.getItem("N").active = false;
-    this.getField("msg_type").lov = lov;
+    // this.getField("msg_type").lov = lov;
 });
 
 
@@ -79,44 +80,57 @@ module.exports.define("updateAfter", function () {
 });
 
 
-module.exports.define("userNotification", function (session, page) {
-    var user_type  = session.user_row.getField("user_type").get(),
-        query      = this.getQuery(),
-        condition,
-        ntfcn_user,
-        ntfcn_role,
-        ntfcn_type,
-        ntfcn_text;
+module.exports.define("checkPageNotifications", function (page) {
+    this.checkUserNotifications(page.session, "A.page_id = " + SQL.Connection.escape(page.id));
+});
 
-    if (page) {
-        condition = "A.page_id = " + SQL.Connection.escape(page.id);
-    } else {
-        condition = "A.when_showed = 'L'";
-    }
+
+module.exports.define("checkLoginNotifications", function (session) {
+    this.checkUserNotifications(session, "A.when_showed = 'L'");
+});
+
+
+module.exports.define("checkUserNotifications", function (session, condition) {
+    var query = this.getQuery();
     condition += " AND (" +
         "(A.acknowl IS NULL AND A.how_often = 'A') OR " +
         "(A.viewed  IS NULL AND A.how_often = 'O') OR " +
         "(A.end_dt  > NOW() AND A.how_often = 'P') )";
     query.addCondition({ full_condition: condition });
-
     while (query.next()) {
-        ntfcn_user = query.getColumn("A.user_id").get();
-        ntfcn_role = query.getColumn("A.role_id").get();
-        ntfcn_type = query.getColumn("A.type_id").get();
-        ntfcn_text = query.getColumn("A.summary").get();
-        if (ntfcn_user === session.user_id || session.roles.indexOf(ntfcn_role) > -1 || user_type === ntfcn_type) {
-            if (query.getColumn("A.detail").get() || query.getColumn("A.how_often").get() !== "P") {
-                ntfcn_text += "<br><a href='" + Rhino.app.base_uri + Rhino.app.app_id + "/" +
-                    UI.pages.get("pb_ntfcn_show").getSimpleURL(query.getColumn("A._key").get()) + "'>view</a><br>";
-            }
-            session.messages.add({ type: query.getColumn("A.msg_type").get(), text: ntfcn_text });
-        }
+        this.checkEachUserNotification(session, query);
     }
     query.reset();
 });
 
-// Added directly to x.SimpleSession
-// x.Session.events.add("userNotification", "start", function() {         // this == session
-//    x.log.functionStart("x.Session::start[userNotification]", this, arguments);
-//    x.entities.pb_ntfcn.userNotification(session);
-// });
+
+module.exports.define("checkEachUserNotification", function (session, query) {
+    var user_type = session.user_row.getField("user_type").get();
+    var ntfcn_user = query.getColumn("A.user_id").get();
+    var ntfcn_role = query.getColumn("A.role_id").get();
+    var ntfcn_type = query.getColumn("A.type_id").get();
+    var ntfcn_text = query.getColumn("A.summary").get();
+    var matches_user = (ntfcn_user === session.user_id);
+    var matches_role = session.isUserInRole(ntfcn_role);
+    var matches_type = (user_type === ntfcn_type);
+    this.debug("checking ntfcn: " + query.getColumn("A.id").get() + ", " + matches_user + ", " + matches_role + ", " + matches_type);
+    if (matches_user || matches_role || matches_type) {
+        if (query.getColumn("A.detail").get() || query.getColumn("A.how_often").get() !== "P") {
+            ntfcn_text += "<br><a href='" + Rhino.app.base_uri +
+                UI.pages.get("pb_ntfcn_show").getSimpleURL(query.getColumn("A._key").get()) + "'>view</a><br>";
+        }
+        session.messages.add({ type: query.getColumn("A.msg_type").get(), text: ntfcn_text });
+    }
+});
+
+
+// Added directly to Session
+Access.Session.defbind("userNotification", "start", function () {         // this == session
+   module.exports.checkLoginNotifications(this);
+});
+
+
+// Added directly to Page
+UI.Page.defbind("userNotification", "setupEnd", function () {         // this == page
+   module.exports.checkPageNotifications(this.session, this);
+});

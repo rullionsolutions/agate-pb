@@ -33,7 +33,7 @@ module.exports.addFields([
 
 module.exports.defbind("presaveLogic", "presave", function (outcome_id) {
     this.getField("last_upd_by").set(this.trans.session.user_id);
-    this.getField("last_upd_at").set("today");
+    this.getField("last_upd_at").set("NOW");
 });
 
 
@@ -48,7 +48,8 @@ module.exports.replaceTokenRecord = function (key) {
     }
 
     return IO.XmlStream.left_bracket_subst + "a href='" +
-        UI.pages.get("pb_article_show").getSimpleURL(row.getKey()) + "'" + IO.XmlStream.right_bracket_subst + row.getLabel("article_link") +
+        UI.pages.get("pb_article_show").getSimpleURL(row.getKey()) + "'" +
+        IO.XmlStream.right_bracket_subst + row.getLabel("article_link") +
         IO.XmlStream.left_bracket_subst + "/a" + IO.XmlStream.right_bracket_subst;
 };
 
