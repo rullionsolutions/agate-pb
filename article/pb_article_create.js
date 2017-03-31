@@ -25,5 +25,5 @@ module.exports.defbind("presaveLogic", "presave", function () {
         id  = row.getField("title").get().toLowerCase().replace(/[\W]/g, "_");
 
     row.getField("id").set(id);
-    this.exit_url_save = "?page_id=pb_article_update&page_key=" + id;
+    this.exit_url_save = "#page_id=pb_article_update&page_key=" + id;
 });
