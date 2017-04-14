@@ -1,7 +1,7 @@
 "use strict";
 
 
-require("agate-pb/pb_config.js");
+require("agate-pb/config.js");
 
 require("agate-pb/article/pb_article.js");
 require("agate-pb/article/pb_article_context.js");
