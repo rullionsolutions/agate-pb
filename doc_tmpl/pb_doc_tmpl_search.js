@@ -3,7 +3,7 @@
 var UI = require("lazuli-ui/index.js");
 
 
-module.exports = UI.Page.clone({
+module.exports = UI.SearchPage.clone({
     id              : "pb_doc_tmpl_search",
     entity_id: "pb_doc_tmpl",
     title           : "Search for Document Templates",

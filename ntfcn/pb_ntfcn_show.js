@@ -58,6 +58,6 @@ module.exports.defbind("setupAfterLogic", "updateAfterSections", function (param
         row.getField("acknowl").set("now");
         trans.save();
         this.active = false;
-        this.redirect_url = "index.html?page_id=home";
+        this.redirect_url = "index.html#page_id=home";
     }
 });

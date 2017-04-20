@@ -3,7 +3,7 @@
 var UI = require("lazuli-ui/index.js");
 
 
-module.exports = UI.Page.clone({
+module.exports = UI.SearchPage.clone({
     id              : "pb_article_search",
     entity_id: "pb_article",
     title           : "Search for Articles",
