@@ -207,21 +207,21 @@ module.exports.define("renderSection", function (section, xmlstream) {
     };
 
     buildSection = function () {
-        var title_out = "",
-            text_out = "";
+        var title_out = "";
+        var text_out = "";
         if (section.title !== undefined) {
             if (section.head_num !== undefined && section.head_num.title !== undefined) {
                 title_out = title_out + section.head_num.title + " ";
             }
-            title_out = title_out + section.title;
-            xmlstream.addChild("h" + section.level).addText(title_out);
+            title_out += section.title;
+            xmlstream.makeElement("h" + section.level).text(title_out);
         }
         if (section.text !== undefined) {
             if (section.head_num !== undefined && section.head_num.text !== undefined) {
-                text_out = text_out + section.head_num.text + " ";
+                text_out += section.head_num.text + " ";
             }
-            text_out = text_out + section.text;
-            xmlstream.addChild("p").addText(that.detokenize(text_out));
+            text_out += section.text;
+            xmlstream.makeElement("p").text(that.detokenize(text_out));
         }
     };
 
