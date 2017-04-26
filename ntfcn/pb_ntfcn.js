@@ -132,5 +132,5 @@ Access.Session.defbind("userNotification", "start", function () {         // thi
 
 // Added directly to Page
 UI.Page.defbind("userNotification", "setupEnd", function () {         // this == page
-   module.exports.checkPageNotifications(this.session, this);
+   module.exports.checkPageNotifications(this);
 });
