@@ -109,17 +109,20 @@ module.exports.define("checkEachUserNotification", function (session, query) {
     var ntfcn_user = query.getColumn("A.user_id").get();
     var ntfcn_role = query.getColumn("A.role_id").get();
     var ntfcn_type = query.getColumn("A.type_id").get();
-    var ntfcn_text = query.getColumn("A.summary").get();
+    var msg = {
+        type: query.getColumn("A.msg_type").get(),
+        text: query.getColumn("A.summary").get(),
+    };
     var matches_user = (ntfcn_user === session.user_id);
     var matches_role = session.isUserInRole(ntfcn_role);
     var matches_type = (user_type === ntfcn_type);
     this.debug("checking ntfcn: " + query.getColumn("A.id").get() + ", " + matches_user + ", " + matches_role + ", " + matches_type);
     if (matches_user || matches_role || matches_type) {
         if (query.getColumn("A.detail").get() || query.getColumn("A.how_often").get() !== "P") {
-            ntfcn_text += "<br><a href='" + Rhino.app.base_uri +
-                UI.pages.get("pb_ntfcn_show").getSimpleURL(query.getColumn("A._key").get()) + "'>view</a><br>";
+            msg.text += " - click to view full detail";
+            msg.link = UI.pages.get("pb_ntfcn_show").getSimpleURL(query.getColumn("A._key").get());
         }
-        session.messages.add({ type: query.getColumn("A.msg_type").get(), text: ntfcn_text });
+        session.messages.add(msg);
     }
 });
 
