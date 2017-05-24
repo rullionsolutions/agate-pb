@@ -34,7 +34,7 @@ module.exports.define("indexes", []);
 
 module.exports.define("getConfig", function (doc_tmpl_id) {
     var config = [],
-        query = this.getQuery(null, true);      // use default sort
+        query = this.getQuery(true);      // use default sort
 
     query.addCondition({ column: "A.doc_tmpl", operator: "=", value: doc_tmpl_id });
 
