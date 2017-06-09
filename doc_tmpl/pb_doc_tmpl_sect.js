@@ -66,18 +66,17 @@ module.exports.define("getSectionHeadingTracker", function () {
         getSubHeadingNumber,
         buildHeadingString;
 
-
     init = function () {
         head_structure = [1,1];
     };
     progress = function () {
-        var curr_pos = head_structure.length-2,
-            end_pos  = head_structure.length-1;
+        var curr_pos = head_structure.length - 2,
+            end_pos  = head_structure.length - 1;
         head_structure[curr_pos] = head_structure[curr_pos] + 1;
         head_structure[end_pos]  = 1;
     };
     subHeaderUsed = function () {
-        var end_pos = head_structure.length-1;
+        var end_pos = head_structure.length - 1;
         head_structure[end_pos] = head_structure[end_pos] + 1;
     };
     increaseDepth = function () {
@@ -87,7 +86,7 @@ module.exports.define("getSectionHeadingTracker", function () {
     decreaseDepth = function () {
         var end_pos;
         head_structure.splice(-1,1);
-        end_pos = head_structure.length-1;
+        end_pos = head_structure.length - 1;
         head_structure[end_pos] = 1;
         progress();
     };
@@ -98,9 +97,9 @@ module.exports.define("getSectionHeadingTracker", function () {
         return buildHeadingString();
     };
     buildHeadingString = function () {
-        var built_heading = "",
-            first = head_structure[0],
-            rest  = head_structure.slice(1);
+        var built_heading = "";
+        var first = head_structure[0];
+        var rest  = head_structure.slice(1);
 
         built_heading = built_heading + first;
         rest.forEach( function (num) {
@@ -134,33 +133,30 @@ module.exports.define("trimSectionInfo", function (section) {
 });
 
 module.exports.define("addHeadingNumberInfo", function (config) {
-    var heading_tracker = this.getSectionHeadingTracker(),
-        that = this;
+    var heading_tracker = this.getSectionHeadingTracker();
+    var that = this;
 
     config.forEach(function (section, index) {
-        var tmp_headings = [],
-            this_level   = section.level,
-            next_level   = config[index + 1] && config[index + 1].level,
-            head_num;
+        var tmp_headings = [];
+        var this_level   = section.level;
+        var next_level   = config[index + 1] && config[index + 1].level;
+        var head_num;
 
         that.trimSectionInfo(section);
 
-        if (section.numbering !== "N") {
-            config[index].head_num = {};
-            head_num = config[index].head_num;
+        config[index].head_num = {};
+        head_num = config[index].head_num;
 
-            tmp_headings.push(heading_tracker.getHeadingNumber());
-            tmp_headings.push(heading_tracker.getSubHeadingNumber());
+        tmp_headings.push(heading_tracker.getHeadingNumber());
 
-            if (section.title !== undefined) { head_num.title = tmp_headings.shift(); }
-            if (section.text  !== undefined) { head_num.text   = tmp_headings.shift(); }
-
-            if (next_level === undefined) { return; }
-
-            if (tmp_headings.length === 0) { heading_tracker.subHeaderUsed(); }
-
-            if  (next_level === this_level)     { heading_tracker.progress();      }
+        if (section.title !== undefined ) {
+            head_num.title = tmp_headings.shift();
         }
+        if (section.text  !== undefined) { head_num.text   = tmp_headings.shift(); }
+
+        if (next_level === undefined) { return; }
+
+        if  (next_level === this_level)     { heading_tracker.progress();      }
         if      (next_level === undefined)      { return; }
         if      (next_level === this_level + 1) { heading_tracker.increaseDepth(); }
         else if (next_level === this_level - 1) { heading_tracker.decreaseDepth(); }
@@ -193,9 +189,9 @@ module.exports.define("renderSections", function (config, params, xmlstream) {
 
 
 module.exports.define("renderSection", function (section, xmlstream) {
-    var buildSection,
-        buildWithExpressionSelection,
-        that = this;
+    var buildSection;
+    var buildWithExpressionSelection;
+    var that = this;
 
     buildWithExpressionSelection = function () {
         var selection_string;
@@ -209,19 +205,26 @@ module.exports.define("renderSection", function (section, xmlstream) {
     buildSection = function () {
         var title_out = "";
         var text_out = "";
+        var p_elem;
         if (section.title !== undefined) {
             if (section.head_num !== undefined && section.head_num.title !== undefined) {
-                title_out = title_out + section.head_num.title + " ";
+                title_out = title_out + (section.numbering === "Y" ? section.head_num.title : "") + " ";
             }
-            title_out += section.title;
-            xmlstream.makeElement("h" + section.level).text(title_out);
+            if (section.level === 1 || !that.ignore_sub_headers) {
+                title_out += section.title;
+                xmlstream.addChild("h" + section.level).addText(title_out);
+            }
         }
         if (section.text !== undefined) {
             if (section.head_num !== undefined && section.head_num.text !== undefined) {
-                text_out += section.head_num.text + " ";
+                text_out = text_out + section.head_num.text + " ";
             }
             text_out += section.text;
-            xmlstream.makeElement("p").text(that.detokenize(text_out));
+            p_elem = xmlstream.addChild("p");
+            if (!!title_out && that.force_section_numbers && that.ignore_sub_headers && section.level > 1) {
+                p_elem.addChild("span").addText(title_out + "&nbsp;");
+            }
+            p_elem.addText(that.detokenize(text_out));
         }
     };
 
